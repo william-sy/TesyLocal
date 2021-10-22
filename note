@@ -1,3 +1,5 @@
+1634911445424 == epoch 
+
 boost on
 http://192.168.2.254/boostSW?mode=0&_=1634911445424
 boost off
@@ -23,9 +25,15 @@ http://192.168.2.254/modeSW?mode=6&_=1634912164061
 eco 3
 http://192.168.2.254/modeSW?mode=7&_=1634912180802
 
+device status
+http://192.168.2.254/devstat?_=1634923248104
 
+language+ set up status
+http://192.168.2.254/getAccessories?_=1634923248606
+
+Set volume amount ?
+http://192.168.2.254/setVolume?_=1634912180802&liters=100
 get status
-
 http://192.168.2.254/status?_=1634911418801
 mysety profile
 http://192.168.2.254/mtProfile?_=1634911562552
