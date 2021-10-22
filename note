@@ -1,0 +1,49 @@
+boost on
+http://192.168.2.254/boostSW?mode=0&_=1634911445424
+boost off
+http://192.168.2.254/boostSW?mode=1&_=1634911446795
+
+set to temp
+http://192.168.2.254/setTemp?val=45&_=1634911879615
+
+
+manual mode
+http://192.168.2.254/modeSW?mode=1&_=1634912123253
+set program 1
+http://192.168.2.254/modeSW?mode=2&_=1634912027732
+set 2
+http://192.168.2.254/modeSW?mode=3&_=1634912041121
+set 3
+http://192.168.2.254/modeSW?mode=4&_=1634912071235
+
+eco 1
+http://192.168.2.254/modeSW?mode=5&_=1634912151669
+eco 2
+http://192.168.2.254/modeSW?mode=6&_=1634912164061
+eco 3
+http://192.168.2.254/modeSW?mode=7&_=1634912180802
+
+
+get status
+
+http://192.168.2.254/status?_=1634911418801
+mysety profile
+http://192.168.2.254/mtProfile?_=1634911562552
+internet test
+http://192.168.2.254/inettest?_=1634911553629
+kwh info
+http://192.168.2.254/calcRes?&watt=&_=1634911625571
+get volume
+http://192.168.2.254/getVolume?_=1634911621820
+program 3
+http://192.168.2.254/getP3?_=1634911711930
+program 2
+http://192.168.2.254/getP2?_=1634911711930
+program 1
+http://192.168.2.254/getP1?_=1634911711930
+vacation
+http://192.168.2.254/getVacation?_=1634911711432
+
+
+reset power
+http://192.168.2.254/resetPow?_=1634912213060
