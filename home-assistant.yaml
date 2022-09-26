@@ -1,0 +1,185 @@
+rest_command:
+  tsmt:
+    url: "http://192.168.2.254/setTemp?val={{ temperature }}&_=1664177655995"
+    method: GET
+
+automation:
+  - alias: "Tesy Temperature input automatically changed"
+    trigger:
+      platform: state
+      entity_id: sensor.tesyboilertargettemp
+    action:
+      service: input_number.set_value
+      target:
+        entity_id: input_number.tesyboilermanualtempinput
+      data:
+        value: "{{ trigger.to_state.state }}"
+  - alias: "Tesy Temperature input manually changed"
+    trigger:
+      platform: state
+      entity_id: input_number.tesyboilermanualtempinput
+    action:
+      service: rest_command.tsmt
+      data:
+        temperature: "{{ trigger.to_state.state }}"
+
+input_number:
+  tesyboilermanualtempinput:
+    name: Set Tesy Manual Temp
+    min: 14
+    max: 75
+    step: 1
+    unit_of_measurement: "°C"
+    icon: mdi:temperature-celsius
+
+switch:
+  - platform: command_line
+    switches:
+      tesyboostonoff:
+        command_on: "/usr/bin/curl -X GET http://192.168.2.254/boostSW?mode=1&_=1634911445424"
+        command_off: "/usr/bin/curl -X GET http://192.168.2.254/boostSW?mode=0&_=1634911446795"
+        command_state: "/usr/bin/curl -sX GET http://192.168.2.254/status?_=1634912123253"
+        value_template: "{{ value_json['boost'] == '1' }}"
+        friendly_name: Boost Tesy!
+        icon_template: >
+          {% if value_json['boost'] == '0' %} mdi:rocket
+          {% elif value_json['boost'] == '1' %} mdi:rocket-launch
+          {% else %} mdi:help-circle
+          {% endif %}
+      tesyonoff:
+        command_on: "/usr/bin/curl -X GET http://192.168.2.254/power?val=on&_=1664015398260"
+        command_off: "/usr/bin/curl -X GET http://192.168.2.254/power?val=off&_=1664015398260"
+        command_state: "/usr/bin/curl -sX GET http://192.168.2.254/status?_=1634912123253"
+        value_template: "{{ value_json['power_sw'] == 'on' }}"
+        friendly_name: Tesy power switch!
+        icon_template: >
+          {% if value_json['power_sw'] == "on" %} mdi:toggle-switch
+          {% else %} mdi:toggle-switch-off
+          {% endif %}
+      tesyresetpower:
+        command_on: "/usr/bin/curl -X GET http://192.168.2.254/resetPow?_=1634912213060"
+        friendly_name: Tesy power Reset!
+      tesysetsetmanualmode:
+        command_on: "/usr/bin/curl -X GET http://192.168.2.254/modeSW?mode=1&_=1664177920325"
+        # Set a default schedule here if you dont want manual mode any longer
+        command_off: "/usr/bin/curl -X GET http://192.168.2.254/modeSW?mode=2&_=1664177920325"
+        command_state: "/usr/bin/curl -sX GET http://192.168.2.254/status?_=1634912123253"
+        value_template: "{{ value_json['mode'] == '1' }}"
+        friendly_name: Set Tesy manual mode
+        icon_template: >
+          {% if value_json['mode'] == '1' %} mdi:water-boiler
+          {% elif  value_json['mode'] == '2' %} mdi:calendar
+          {% elif  value_json['mode'] == '3' %} mdi:calendar
+          {% elif  value_json['mode'] == '4' %} mdi:calendar
+          {% elif  value_json['mode'] == '5' %} mdi:sprout
+          {% elif  value_json['mode'] == '6' %} mdi:sprout
+          {% elif  value_json['mode'] == '7' %} mdi:sprout
+          {% else %} mdi:help-circle
+          {% endif %}
+
+sensor:
+  - platform: rest
+    resource: http://192.168.2.254/status?_=1634912123253
+    name: tesyboiler
+    method: GET
+    value_template: "OK"
+    json_attributes:
+      - gradus
+      - ref_gradus
+      - heater_state
+      - err_flag
+      - boost
+      - power_sw
+      - volume
+      - watts
+      - mode
+  - platform: rest
+    resource: http://192.168.2.254/calcRes?_=1634912123253
+    name: tesyboilerpower
+    method: GET
+    value_template: "OK"
+    json_attributes:
+      - kwh
+      - ltc
+      - resetDate
+
+template:
+  - sensor:
+      - name: "Boiler kWh all time"
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: "{{ states('sensor.TesyBoilerKwhAllTime') }}"
+  - sensor:
+      - name: "tesyboilerkwhresetdate"
+        icon: mdi:calendar-blank-outline
+        unique_id: "TesyBoilerKwhResetDate"
+        state: "{{ state_attr('sensor.tesyboilerpower', 'resetDate') }}"
+  - sensor:
+      - name: "tesyboilerkwhafterreset"
+        icon: mdi:lightning-bolt
+        unique_id: "TesyBoilerKwhAfterReset"
+        state: "{{ state_attr('sensor.tesyboilerpower', 'kwh') }}"
+        unit_of_measurement: "kWh"
+        device_class: energy
+  - sensor:
+      - name: "tesyboilerwatervolume"
+        icon: mdi:cup-water
+        unique_id: "TesyBoilerWaterVolume"
+        state: "{{ state_attr('sensor.tesyboiler', 'volume') }}"
+        unit_of_measurement: "L"
+  - sensor:
+      - name: "tesyboilerwatts"
+        icon: mdi:power-plug
+        unique_id: "TesyBoilerWatts"
+        state: "{{ state_attr('sensor.tesyboiler', 'watts') }}"
+        unit_of_measurement: "W"
+  - sensor:
+      - name: "tesyboilermode"
+        icon: mdi:calendar
+        unique_id: "TesyBoilerMode"
+        state: "{{ state_attr('sensor.tesyboiler', 'mode') }}"
+  - sensor:
+      - name: "tesyboilererror"
+        icon: mdi:water-boiler-alert
+        unique_id: "TesyBoilerError"
+        state: "{{ state_attr('sensor.tesyboiler', 'err_flag') }}"
+  - sensor:
+      - name: "tesyboilerboost"
+        icon: mdi:arrow-up-circle
+        unique_id: "TesyBoilerBoost"
+        state: "{{ state_attr('sensor.tesyboiler', 'boost') }}"
+  - sensor:
+      - name: "tesyboileronoff"
+        icon: mdi:help-circle
+        unique_id: "TesyBoilerOnOff"
+        state: "{{ state_attr('sensor.tesyboiler', 'power_sw') }}"
+  - sensor:
+      - name: "tesyboilerstate"
+        icon: mdi:help-circle
+        unique_id: "TesyBoilerState"
+        state: "{{ state_attr('sensor.tesyboiler', 'heater_state') }}"
+  - sensor:
+      - name: "tesyboilertargettemp"
+        icon: mdi:help-circle
+        unique_id: "TesyBoilerTargetTemp"
+        state: "{{ state_attr('sensor.tesyboiler', 'ref_gradus') }}"
+  - sensor:
+      - name: "tesyboilerwatertemp"
+        icon: mdi:temperature-celsius
+        unique_id: "TesyBoilerWaterTemp"
+        state: "{{ state_attr('sensor.tesyboiler', 'gradus') }}"
+        unit_of_measurement: "°C"
+  - sensor:
+      - name: "tesyboilerwatertargettemp"
+        icon: mdi:temperature-celsius
+        unique_id: "TesyBoilerWaterTargetTemp"
+        state: "{{ state_attr('sensor.tesyboiler', 'ref_gradus') }}"
+        unit_of_measurement: "°C"
+  - sensor:
+      - name: "tesyboilerkwhalltime"
+        icon: mdi:lightning-bolt
+        unique_id: "TesyBoilerKwhAllTime"
+        state: "{{ state_attr('sensor.tesyboilerpower', 'ltc') }}"
+        unit_of_measurement: "kWh"
+        device_class: energy

@@ -101,6 +101,24 @@ class tesy():
         # Prints all the data of schedule 3
         return tesyshed3
 
+#    @property
+#    def pickle(self):
+#        import sqlite3 as sl
+#        con = sl.connect('tesy.db')
+#        CREATE TABLE IF NOT EXISTS tesy (date date, power text, powerst text, temp integer, target integer, boost, integer, kwh1 integer, kwh2 integer);
+#        data = [
+#                tesyreturn['date'],
+#                tesyreturn['power_sw'],
+#                tesyreturn['heater_state'],
+#                tesyreturn['gradus'],
+#                tesyreturn['ref_gradus'],
+#                tesyreturn['boost'],
+#                tesyreturn['ltc'],
+#                tesyreturn['kwh']
+#            ]
+#        print(data)
+
+
     @property
     def tesyprettyprinter(self):
         # Prints all the data but pretty
@@ -162,3 +180,4 @@ if __name__ == "__main__":
 
     #(f"Tesy data: {tesy.tesyprinters1}")
     print(f"{tesy.tesyprettyprinter}")
+#    tesy.pickle
