@@ -68,15 +68,17 @@ switch:
         friendly_name: Set Tesy manual mode
         icon_template: >
           {% if value_json['mode'] == '1' %} mdi:water-boiler
-          {% elif  value_json['mode'] == '2' %} mdi:calendar
-          {% elif  value_json['mode'] == '3' %} mdi:calendar
-          {% elif  value_json['mode'] == '4' %} mdi:calendar
-          {% elif  value_json['mode'] == '5' %} mdi:sprout
-          {% elif  value_json['mode'] == '6' %} mdi:sprout
-          {% elif  value_json['mode'] == '7' %} mdi:sprout
+          {% elif value_json['mode'] == '2' %} mdi:calendar
+          {% elif value_json['mode'] == '3' %} mdi:calendar
+          {% elif value_json['mode'] == '4' %} mdi:calendar
+          {% elif value_json['mode'] == '5' %} mdi:sprout
+          {% elif value_json['mode'] == '6' %} mdi:sprout
+          {% elif value_json['mode'] == '7' %} mdi:sprout
+          # No idea what mode 8 is.
+          {% elif value_json['mode'] == '8' %} mdi:help
+          {% elif value_json['mode'] == '9' %} mdi:beach
           {% else %} mdi:help-circle
           {% endif %}
-
 sensor:
   - platform: rest
     resource: http://192.168.2.254/status?_=1634912123253
