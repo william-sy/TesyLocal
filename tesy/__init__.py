@@ -150,7 +150,7 @@ class tesy():
         ==========================================
         | Vacation Set: {tesyreturn['vSet'][0:4]:^4}
         | Vacation Target Temp: {tesyreturn['vTemp'][0:4]:^4}
-        | Vacation date (Y:M:D:H): {tesyreturn['vYear']}:{tesyreturn['vMonth']}:{tesyreturn['vMonth']}:{tesyreturn['vMDay']}:{tesyreturn['vHour']}
+        | Vacation date (Y:M:D:H): {tesyreturn['vYear']}:{tesyreturn['vMonth']}:{tesyreturn['vMDay']}:{tesyreturn['vHour']}
         | Vacation WeekDay: {tesyreturn['vWDay']}
         ==========================================
         # Wifi: (outgoing)                       #
