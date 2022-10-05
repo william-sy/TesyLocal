@@ -5,11 +5,11 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name = "tesy",
+    name = "tesylocal",
     version = "1.0",
     author = "William",
     author_email = "None",
-    description = ("Connect to a TesyLocal Boiler"),
+    description = ("Connect to a Tesy Boiler ithout the use of the cloud."),
     license = "GPL-3.0-only",
     keywords = "Tesy",
     url = "",
