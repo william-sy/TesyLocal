@@ -1,8 +1,10 @@
+# -*- coding: utf-8 -*-
 import time, json, urllib.request, datetime
 # The requests by default use epoch, altough you could change this to something else
 epoch_time = int(time.time())
 # The IP adress of the device
-ipaddress  = "192.168.2.254"
+# For tessting.
+#ipaddress  = "192.168.2.254"
 # Get the general attributes
 tesydata   = ["devstat", "status", "getAccessories", "mtProfile", "inettest", "getVolume", "watt", "getVacation", "calcRes", "apsecret"]
 # Get the schedules from the device
@@ -13,16 +15,22 @@ tesyshed1  = []
 tesyshed2  = []
 tesyshed3  = []
 
+__version__ = "1.1"
+
+NAME = "tesylocal"
+VERSION = __version__
+
 class tesy():
     """
     A simple class to display all the data of your tesy boiler.
     Maybe even change a thing or two.
     """
 
-    # All tesy requests require current epoch.
+    # Some tesy requests require current epoch.
+    # It might even be just a request ID and unneeded for all request
     epoch_time = int(time.time())
 
-    def __init__(self):
+    def __init__(self, ipaddress):
         super(tesy, self).__init__()
         self._scan_device(ipaddress)
         self._weekly_schedule(tesyreturn['mode'])
@@ -101,24 +109,6 @@ class tesy():
         # Prints all the data of schedule 3
         return tesyshed3
 
-#    @property
-#    def pickle(self):
-#        import sqlite3 as sl
-#        con = sl.connect('tesy.db')
-#        CREATE TABLE IF NOT EXISTS tesy (date date, power text, powerst text, temp integer, target integer, boost, integer, kwh1 integer, kwh2 integer);
-#        data = [
-#                tesyreturn['date'],
-#                tesyreturn['power_sw'],
-#                tesyreturn['heater_state'],
-#                tesyreturn['gradus'],
-#                tesyreturn['ref_gradus'],
-#                tesyreturn['boost'],
-#                tesyreturn['ltc'],
-#                tesyreturn['kwh']
-#            ]
-#        print(data)
-
-
     @property
     def tesyprettyprinter(self):
         # Prints all the data but pretty
@@ -177,7 +167,4 @@ class tesy():
 
 if __name__ == "__main__":
     tesy = tesy()
-
-    #(f"Tesy data: {tesy.tesyprinters1}")
-    print(f"{tesy.tesyprettyprinter}")
-#    tesy.pickle
+    #print(f"{tesy.tesyprettyprinter}")

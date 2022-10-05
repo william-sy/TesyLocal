@@ -6,19 +6,21 @@ def read(fname):
 
 setup(
     name = "tesylocal",
-    version = "1.0",
+    version = "1.1",
     author = "William",
-    author_email = "None",
-    description = ("Connect to a Tesy Boiler ithout the use of the cloud."),
+    author_email = "wvanbeek.sy@gmail.com",
+    description = ("Connect to a Tesy Boiler without the use of the modeco cloud."),
     license = "GPL-3.0-only",
-    keywords = "Tesy",
-    url = "",
-    packages=['tesy'],
+    keywords = ["Tesy", "Modeco", "Local"],
+    url = "https://github.com/william-sy/TesyLocal",
+    packages=['tesylocal'],
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",
     install_requires=['websocket-client', 'dpath', 'ipaddress'],
     classifiers=[
         "Topic :: Utilities",
-        "License :: GPL-3.0-only",
+        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+        "Operating System :: OS Independent",
+        'Development Status :: 4 - Beta',
     ],
 )

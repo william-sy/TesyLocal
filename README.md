@@ -4,9 +4,11 @@ The opposite of Tesy cloud
 ## Intro
 This little package only reads data from your tesy boiler at the moment.
 
-Requirements: Python3.6 and up
+Requirements:
+- Python3.6 and up
+- Boiler firmware of 20.20 and up
 
-Currently it will give you this data:
+Currently this program will give you this:
 
 ```text
 ==========================================
@@ -50,7 +52,7 @@ Currently it will give you this data:
 # Wifi: (Indoor)                         #
 ==========================================
 | Protection:             psk2
-| Password:          Password
+| Password:               Password
 ==========================================
 # Misc:                                  #
 ==========================================
@@ -72,6 +74,17 @@ Currently it will give you this data:
 ```
 > Note that there are a total of 9 modes, Not sure what they all do.
 
+
+## Simple how-to get started:
+
+```python
+# This is a small app, using the TesyLocal module
+from tesylocal import tesy
+# Please specify your boiler IP like so:
+boiler = tesylocal("192.1681.1")
+# Then print a property
+print(boiler.tesyprettyprinter)
+```
 
 ## Home Assistant
 Currently a integration is in the works, but until then you can add the following to your configuration.yaml
