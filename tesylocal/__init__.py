@@ -19,7 +19,7 @@ tesyshed1  = []
 tesyshed2  = []
 tesyshed3  = []
 
-__version__ = "1.2"
+__version__ = "1.3"
 
 NAME = "tesylocal"
 VERSION = __version__
