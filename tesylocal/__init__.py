@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
-import time, json, urllib.request, datetime
-# The requests by default use epoch, altough you could change this to something else
+## Imports:
+import time, json, urllib.request, datetime, logging, platform, subprocess, os
+from urllib.error import HTTPError, URLError
+from socket import timeout
+## Variables:
+# A UUID accepteb by tesy:
 epoch_time = int(time.time())
-# The IP adress of the device
-# For tessting.
-#ipaddress  = "192.168.2.254"
+# For tessting:                                                        ipaddress  = "192.168.2.254"
+# The length of the time out in secconds before giving up on a device:
+urltimeout = 5
 # Get the general attributes
 tesydata   = ["devstat", "status", "getAccessories", "mtProfile", "inettest", "getVolume", "watt", "getVacation", "calcRes", "apsecret"]
 # Get the schedules from the device
@@ -15,10 +19,11 @@ tesyshed1  = []
 tesyshed2  = []
 tesyshed3  = []
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 NAME = "tesylocal"
 VERSION = __version__
+_LOGGER = logging.getLogger(NAME)
 
 class tesy():
     """
@@ -26,29 +31,54 @@ class tesy():
     Maybe even change a thing or two.
     """
 
-    # Some tesy requests require current epoch.
-    # It might even be just a request ID and unneeded for all request
-    epoch_time = int(time.time())
-
-    def __init__(self, ipaddress):
+    def __init__(self, ipaddress, sync):
         super(tesy, self).__init__()
-        self._scan_device(ipaddress)
-        self._weekly_schedule(tesyreturn['mode'])
+        self._validate_ip(ipaddress)
+        if sync == "sync":
+            self._scan_device(ipaddress)
+            self._weekly_schedule(tesyreturn['mode'])
+        else:
+            pass
+
+    def _validate_ip(self, ip):
+        try:
+            turl = f"http://{ip}/devstat"
+            response = urllib.request.urlopen(turl, timeout=urltimeout).read().decode('utf-8')
+        except HTTPError as error:
+            logging.error('HTTP Error: Data of %s not retrieved because %s\nURL: %s', ip, error, turl)
+        except URLError as error:
+            if isinstance(error.reason, timeout):
+                logging.error('Timeout Error: Data of %s not retrieved because %s\nURL: %s', ip, error, turl)
+            else:
+                logging.error('URL Error: Data of %s not retrieved because %s\nURL: %s', ip, error, turl)
+        else:
+            logging.info('Validation of the URl successful, Validating json')
+            try:
+                data = json.loads(response)
+            except ValueError as error:
+                logging.info('JSON Error: Could not load given JSON from URL: %s', error)
+            else:
+                try:
+                    wifi = data['inetdev']
+                except KeyError as error:
+                    logging.info('JSON Error: Could not find inetdev key in JSON: %s', error)
+                else:
+                    logging.info('Validation of device completed')
 
     def _scan_device(self, ip):
         # This function will get all the data from the boiler.
         for stat in tesydata:
-            turl = f"http://{ip}/{stat}?_={epoch_time}"
+            turl = f"http://{ip}/{stat}"
+            # By placing this at the end of the above URL you geive the URL a UUID.
+            #?_={epoch_time}"
             with urllib.request.urlopen(turl) as url:
                 data = json.loads(url.read().decode())
-                #print(f"Getting: {stat}")
                 tesyreturn.update(data)
 
         for sched in tesyshdata:
-            turl = f"http://{ip}/{sched}?_={epoch_time}"
+            turl = f"http://{ip}/{sched}"
             with urllib.request.urlopen(turl) as url:
                 data = json.loads(url.read().decode())
-                #print(f"Getting: {sched}")
                 if sched == "getP1":
                     tesyshed1.extend(data)
                 elif sched == "getP2":
@@ -57,6 +87,12 @@ class tesy():
                     tesyshed3.extend(data)
                 else:
                     print("Schedule not known")
+
+    def _send_value(self, ip, urlsuffix):
+        try:
+            response = urllib.request.urlopen(f'http://{ip}/{urlsuffix}').read().decode('utf-8')
+        except:
+            logging.info('Value could not be set, sorry!')
 
     def _weekly_schedule(self, id):
         calculate = True
@@ -164,7 +200,133 @@ class tesy():
 
         return pretty
 
+    def updateallvalues(self, ip):
+        """
+        Update the boiler data
+        """
+        self._scan_device(ip)
+
+    def updateschedules(self, ip):
+        """
+        Update the schedule data
+        """
+        self._weekly_schedule(ip)
+
+    def boostonoff(self, ip, boost):
+        """
+        Turn on or off the boost.
+        URL example: http://192.168.2.254/boostSW?mode=0
+        ---
+        Send off value: boiler.boostonoff("192.168.2.254", 0)
+        Send on value: boiler.boostonoff("192.168.2.254", 1)
+        Note:
+        You need atleast a few seccond between request, else the boiler might
+        not switch thesse this can be fixed with turning the boiler on and off.
+        """
+        if isinstance(boost, int):
+            allowedvalues = [0, 1]
+            if boost in allowedvalues:
+                urlsuffix = f"boostSW?mode={boost}"
+                self._send_value(ip, urlsuffix)
+            else:
+                logging.info('Parameter given for boost must be either 0 or 1, you supplied: %s', boost)
+        else:
+            logging.info('Parameter given must be a valid number (1 or 0)')
+
+    def boileronoff(self, ip, power):
+        """
+        Turn on or off the boiler itself.
+        URL example: http://192.168.2.254/power?val=on
+        ---
+        Send off value: boiler.boileronoff("192.168.2.254","off")
+        Send on value: boiler.boileronoff("192.168.2.254","on")
+        """
+        allowedvalues = ["on", "off"]
+        if power in allowedvalues:
+            urlsuffix = f"power?val={power}"
+            self._send_value(ip, urlsuffix)
+        else:
+            logging.info('Parameter given for power must be either "on" or "off", you supplied: %s', power)
+
+    def boilermode(self, ip, mode):
+        """
+        Turn on or off manual temperature override.
+        URL example: http://192.168.2.254/modeSW?mode=1
+        ---
+        Send off value: boiler.boilermanualmode("192.168.2.254", 0)
+        Send on value: boiler.boilermanualmode("192.168.2.254", 1)
+        """
+        if isinstance(mode, int):
+            if 0 <= mode < 9:
+                urlsuffix = f"modeSW?mode={mode}"
+                self._send_value(ip, urlsuffix)
+            else:
+                logging.info('Parameter given to mode mode can be 0 up to 9, you supplied: %s', mode)
+        else:
+            logging.info('Parameter given must be a valid number 0 up up to 9')
+
+    def manualtemp(self, ip, temp):
+        """
+        Set manual temperature.
+        URL example: http://192.168.2.254/setTemp?val=45
+        ---
+        Send value: boiler.manualtemp("192.168.2.254", 45)
+        Must be between 14 and 75, note that manual mode must be on.
+        """
+        if isinstance(temp, int):
+            if 14 < temp < 75:
+                urlsuffix = f"setTemp?val={temp}"
+                self._send_value(ip, urlsuffix)
+            else:
+                logging.info('Parameter given to manual temp must be a number between 14 and 75')
+        else:
+            logging.info('Parameter given to manual temp must be a valid number EG 45 and not 45.00')
+
+    def automanualtemp(self, ip, temp):
+        """
+        Turn on manual temperature override.
+        And set a temperature this guarantees a correct order of operations
+        """
+        # ToDo, check if it is needed
+        self.boilermanualmode(ip, 1)
+        self.manualtemp(ip, temp)
+
+    def resetpower(self, ip):
+        """
+        This resets the energy consumption:
+        > Power consumption from the moment of the of the reset
+        Note: this is not the total consumption since you turned on the device.
+        """
+        urlsuffix = f"resetPow"
+        self._send_value(ip, urlsuffix)
+
+    def settime(self, ip, tz):
+        """
+        Set time and date to now on the boiler
+        This needs a time zone like Europe/Amsterdam
+        EG: boiler.settime("192.168.2.254", "Europe/Amsterdam")
+        This relies on the boiler supplying the data :/
+        """
+        today = datetime.datetime.today()
+        if os.name == "posix":
+            day = today.strftime("%-d")
+        else:
+            # This is for windows
+            day = today.strftime("%#d")
+        sec = today.strftime("%S")
+        min = today.strftime("%M")
+        hour = today.strftime("%H")
+        month = today.strftime("%m")
+        year = today.strftime("%Y")
+        zoneurl = f"http://{ip}/langs/en-US.json"
+        response = json.loads(urllib.request.urlopen(zoneurl, timeout=urltimeout).read().decode())
+        selected_tz = response['cityTimeZoneOption'][tz]['value']
+        urlsuffix = f"setdate?tOffset={selected_tz}&tDay={day}&tMonth={month}&tYear={year}&tHour={hour}&tMin={min}&tSec={sec}"
+        self._send_value(ip, urlsuffix)
+
+    # SetVacation
+    # SetPower
+    #
 
 if __name__ == "__main__":
     tesy = tesy()
-    #print(f"{tesy.tesyprettyprinter}")

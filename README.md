@@ -75,15 +75,34 @@ Currently this program will give you this:
 > Note that there are a total of 9 modes, Not sure what they all do.
 
 
-## Simple how-to get started:
+## Simple how-to get started / command examples:
 
 ```python
 # This is a small app, using the TesyLocal module
 from tesylocal import tesy
-# Please specify your boiler IP like so:
-boiler = tesylocal("192.1681.1")
-# Then print a property
+# Please specify your boiler IP like so, and if you want a initial sync of all values
+## NOTE: This is only important if you are not planning to integrate this.
+boiler = tesy("192.168.1.1", "sync")
+# No sync:
+boiler = tesy("192.168.1.1", "nosync")
+# Then print a property, This requires "sync" or updateallvalues / updateschedules after connecting.
 print(boiler.tesyprettyprinter)
+
+## Other options:
+# Update values:
+boiler.updateallvalues('192.168.2.254')
+boiler.updateschedules('192.168.2.254')
+# Got DHCP?, Or perhaps you want to validate the IP once in a while or check if the device is alive:
+boiler.check_ip_status('192.168.2.254')
+# Turn on the boiler
+boiler.boileronoff("192.168.2.254","on")
+# Turn the boiler off
+boiler.boileronoff("192.168.2.254","off")
+# More are available:
+# boostonoff, boilermanualmode, boileronoff, manualtemp,
+# automanualmode, boilermode, resetpower, settime
+boiler.boostonoff.__doc__
+# for more info on a item.
 ```
 
 ## Home Assistant
@@ -93,7 +112,7 @@ Currently a integration is in the works, but until then you can add the followin
 ``` yaml
 rest_command:
   tsmt:
-    url: "http://192.168.2.254/setTemp?val={{ temperature }}&_=1664177655995"
+    url: "http://192.168.2.254/setTemp?val={{ temperature }}"
     method: GET
 
 automation:
@@ -129,8 +148,8 @@ switch:
   - platform: command_line
     switches:
       tesyboostonoff:
-        command_on: "/usr/bin/curl -X GET http://192.168.2.254/boostSW?mode=1&_=1634911445424"
-        command_off: "/usr/bin/curl -X GET http://192.168.2.254/boostSW?mode=0&_=1634911446795"
+        command_on: "/usr/bin/curl -X GET http://192.168.2.254/boostSW?mode=1"
+        command_off: "/usr/bin/curl -X GET http://192.168.2.254/boostSW?mode=0"
         command_state: "/usr/bin/curl -sX GET http://192.168.2.254/status"
         value_template: "{{ value_json['boost'] == '1' }}"
         friendly_name: Boost Tesy!
@@ -140,8 +159,8 @@ switch:
           {% else %} mdi:help-circle
           {% endif %}
       tesyonoff:
-        command_on: "/usr/bin/curl -X GET http://192.168.2.254/power?val=on&_=1664015398260"
-        command_off: "/usr/bin/curl -X GET http://192.168.2.254/power?val=off&_=1664015398260"
+        command_on: "/usr/bin/curl -X GET http://192.168.2.254/power?val=on"
+        command_off: "/usr/bin/curl -X GET http://192.168.2.254/power?val=off"
         command_state: "/usr/bin/curl -sX GET http://192.168.2.254/status"
         value_template: "{{ value_json['power_sw'] == 'on' }}"
         friendly_name: Tesy power switch!
@@ -150,12 +169,12 @@ switch:
           {% else %} mdi:toggle-switch-off
           {% endif %}
       tesyresetpower:
-        command_on: "/usr/bin/curl -X GET http://192.168.2.254/resetPow?_=1634912213060"
+        command_on: "/usr/bin/curl -X GET http://192.168.2.254/resetPow"
         friendly_name: Tesy power Reset!
       tesysetsetmanualmode:
-        command_on: "/usr/bin/curl -X GET http://192.168.2.254/modeSW?mode=1&_=1664177920325"
+        command_on: "/usr/bin/curl -X GET http://192.168.2.254/modeSW?mode=1"
         # Set a default schedule here if you dont want manual mode any longer
-        command_off: "/usr/bin/curl -X GET http://192.168.2.254/modeSW?mode=2&_=1664177920325"
+        command_off: "/usr/bin/curl -X GET http://192.168.2.254/modeSW?mode=2"
         command_state: "/usr/bin/curl -sX GET http://192.168.2.254/status"
         value_template: "{{ value_json['mode'] == '1' }}"
         friendly_name: Set Tesy manual mode
@@ -282,7 +301,7 @@ template:
 ```
 
 ## Notes:
-Here are ssome of the URLs you can manually make to controll the boiler and a description:
+Here are some of the URLs you can manually make to control the boiler and a description:
 ```text
 1634911445424 == epoch
 

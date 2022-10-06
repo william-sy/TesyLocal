@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name = "tesylocal",
-    version = "1.1",
+    version = "1.2",
     author = "William",
     author_email = "wvanbeek.sy@gmail.com",
     description = ("Connect to a Tesy Boiler without the use of the modeco cloud."),
