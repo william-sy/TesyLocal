@@ -340,6 +340,7 @@ language+ set up status
 http://192.168.2.254/getAccessories?_=1634923248606
 # Set volume
 http://192.168.2.254/setVolume?_=1634912180802&liters=100
+http://192.168.2.254/setVolume&liters=100
 # my tesy profile
 http://192.168.2.254/mtProfile?_=1634911562552
 # internet test

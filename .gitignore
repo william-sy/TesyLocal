@@ -3,3 +3,5 @@ __pycache__
 dist
 tesylocal.egg-info
 test.py
+build.sh
+app.js

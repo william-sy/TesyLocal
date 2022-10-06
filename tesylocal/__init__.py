@@ -325,8 +325,30 @@ class tesy():
         self._send_value(ip, urlsuffix)
 
     # SetVacation
-    # SetPower
-    #
+    #                                        EPOCH            year short        month       day         dayofweek   hour        target temp
+    #http://192.168.2.254/setVacation ?_=1665084319851        &vYear=22         &vMonth=10  &vMDay=27   &vWDay=4    &vHour=15   &vTemp=75
+    def setboilervolume(self, ip, volume):
+        """
+        Set the water volume of the boiler in liters
+        URL example: http://192.168.2.254/setVolume?liters=100
+        ---
+        Allowed values: 50, 80, 100, 120, 150
+        """
+        allowedvalues = [ 50, 80, 100, 120 , 150]
+
+        if isinstance(volume, int):
+            if volume in allowedvalues:
+                urlsuffix = f"setVolume?liters={volume}"
+                self._send_value(ip, urlsuffix)
+        else:
+            logging.info('Parameter given for volume must be a integer, you supplied: %s', volume)
+
+    def check_ip_status(self, ip):
+        """
+        Checks the ip for correct working.
+        """
+        self._validate_ip(ip)
+
 
 if __name__ == "__main__":
     tesy = tesy()
