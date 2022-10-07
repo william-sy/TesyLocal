@@ -19,7 +19,7 @@ tesyshed1  = []
 tesyshed2  = []
 tesyshed3  = []
 
-__version__ = "1.4"
+__version__ = "1.4.1"
 
 NAME = "tesylocal"
 VERSION = __version__
@@ -363,7 +363,6 @@ class tesy():
                     datetime_object = datetime.datetime.strptime(date, '%y/%m/%d')
                     daynum = datetime_object.strftime('%w')
                     urlsuffix = f"setVacation?vYear={year}&vMonth={month}&vMDay={day}&vWDay={daynum}&vHour={hour}&vTemp={temp}"
-                    print(urlsuffix)
                     self._send_value(ip, urlsuffix)
                 else:
                     logging.info('Validation of date failed')
