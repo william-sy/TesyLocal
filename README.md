@@ -8,8 +8,64 @@ Requirements:
 - Python3.6 and up
 - Boiler firmware of 20.20 and up
 
-Currently this program will give you this:
+# Index
+1. [Get Started](#GetStarted)
+2. [Arguments](#Arguments)
+3. [Boiler Modes](#Modes)
+4. [Home assistant YAML](#HA)
+5. [Notes](#Notes)
 
+## Simple how-to get started / command examples <a name="GetStarted"></a>
+
+```python
+# This is a small app, using the TesyLocal module
+from tesylocal import tesy
+# Please specify your boiler IP like so, and if you want a initial sync of all values
+## NOTE: This is only important if you are not planning to integrate this.
+boiler = tesy("192.168.1.1", "sync")
+# No sync:
+boiler = tesy("192.168.1.1", "nosync")
+# Then print a property, This requires "sync" or updateallvalues / updateschedules after connecting.
+print(boiler.tesyprettyprinter)
+
+## Other options:
+# Update values:
+boiler.updateallvalues('192.168.2.254')
+boiler.updateschedules('192.168.2.254')
+# Got DHCP?, Or perhaps you want to validate the IP once in a while or check if the device is alive:
+boiler.check_ip_status('192.168.2.254')
+# Turn on the boiler
+boiler.boileronoff("192.168.2.254","on")
+# Turn the boiler off
+boiler.boileronoff("192.168.2.254","off")
+# More are available:
+# boostonoff, boilermanualmode, boileronoff, manualtemp,
+# automanualmode, boilermode, resetpower, settime, setboilervolume, setvacationmode
+```
+
+### Available commands and expected arguments <a name="Arguments"></a>
+| Command                | Ip Needed | Argument 1       | Argument 2 | Argument 3 | Notes                                                                                                                                                      |
+|------------------------|-----------|------------------|------------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| boiler.updateallvalues | True      | N/A              | N/A        | N/A        | Updates all current values for pretty print                                                                                                                |
+| boiler.updateschedules | True      | N/A              | N/A        | N/A        | Updates all schedules for pretty print                                                                                                                     |
+| boiler.check_ip_status | True      | N/A              | N/A        | N/A        | Validates if the IP accepts `/devstat` and if the JSON we get is valid.                                                                                    |
+| boiler.boileronoff     | True      | "on" / "off"     | N/A        | N/A        | Turns the boiler on or off, must be string                                                                                                                 |
+| boiler.boostonoff      | True      | 0 - 1            | N/A        | N/A        | Turns boost mode on or off, must be int 0 to 1 (0 off, 1 on)                                                                                               |
+| boiler.manualtemp      | True      | 14 - 75          | N/A        | N/A        | Sets the temperature of the boiler if the boiler is in manual mode, Must be int 14 to 75                                                                   |
+| boiler.automanualmode  | True      | 14 - 75          | N/A        | N/A        | Sets the temperature of manual mode, but also forces the boiler in manual mode regardless, Must be int 14 to 75                                            |
+| boiler.boilermode      | True      | 0 - 9            | N/A        | N/A        | Sets a mode of the boiler see "Boiler modes" chapter, Must be int 0 to 9                                                                                   |
+| boiler.resetpower      | True      | N/A              | N/A        | N/A        | Resets the kWh meter of the boiler, Note this not the since powered on kWh counter, but a second meter                                                     |
+| boiler.settime         | True      | Europe/Amsterdam | N/A        | N/A        | Sets the time of the boiler to now, must need time zone in "Europe/Amsterdam" format                                                                       |
+| boiler.setboilervolume | True      | 100              | N/A        | N/A        | Sets the volume of the boiler, This might be wrong from factory and is a bug in FW21.21 that it cannot update, must be int one off (50, 80, 100, 120, 150) |
+| boiler.setvacationmode | True      | 23/12/32 (Y/M/D) | 00 - 23    | 14 -75     | Turns on vacation mode, needs date as string, hour as string, temp as int (boiler.setvacationmode("ip", "23/12/31","13",75)                                |
+| boiler.pretyprinter    | False     | N/A              | N/A        | N/A        | Shows a pretty format of all the values (needs, sync or updateallvalues/updateschedules)                                                                   |
+| boiler.tesyprinter     | False     | N/A              | N/A        | N/A        | Raw data output (needs, sync or updateallvalues/updateschedules)                                                                                           |
+| boiler.tesyprinter1    | False     | N/A              | N/A        | N/A        | Raw data output of schedule 1 (needs, sync or updateschedules)                                                                                             |
+| boiler.tesyprinter2    | False     | N/A              | N/A        | N/A        | Raw data output of schedule 2 (needs, sync or updateschedules)                                                                                             |
+| boiler.tesyprinter3    | False     | N/A              | N/A        | N/A        | Raw data output of schedule 3 (needs, sync or updateschedules)                                                                                             |
+
+
+This is a example of the output you can expect with the `print(boiler.tesyprettyprinter)`
 ```text
 ==========================================
 # General:                               #
@@ -60,7 +116,7 @@ Currently this program will give you this:
 | MacAddr:      70:f1:
 ```
 
-## Boiler modes:
+## Boiler modes: <a name="Modes"></a>
 ```text
 1: Manual mode
 2: Weekly program 1
@@ -74,38 +130,7 @@ Currently this program will give you this:
 ```
 > Note that there are a total of 9 modes, Not sure what they all do.
 
-
-## Simple how-to get started / command examples:
-
-```python
-# This is a small app, using the TesyLocal module
-from tesylocal import tesy
-# Please specify your boiler IP like so, and if you want a initial sync of all values
-## NOTE: This is only important if you are not planning to integrate this.
-boiler = tesy("192.168.1.1", "sync")
-# No sync:
-boiler = tesy("192.168.1.1", "nosync")
-# Then print a property, This requires "sync" or updateallvalues / updateschedules after connecting.
-print(boiler.tesyprettyprinter)
-
-## Other options:
-# Update values:
-boiler.updateallvalues('192.168.2.254')
-boiler.updateschedules('192.168.2.254')
-# Got DHCP?, Or perhaps you want to validate the IP once in a while or check if the device is alive:
-boiler.check_ip_status('192.168.2.254')
-# Turn on the boiler
-boiler.boileronoff("192.168.2.254","on")
-# Turn the boiler off
-boiler.boileronoff("192.168.2.254","off")
-# More are available:
-# boostonoff, boilermanualmode, boileronoff, manualtemp,
-# automanualmode, boilermode, resetpower, settime
-boiler.boostonoff.__doc__
-# for more info on a item.
-```
-
-## Home Assistant
+## Home Assistant <a name="HA"></a>
 Currently a integration is in the works, but until then you can add the following to your configuration.yaml
 > Note that the `?_=1634912123253` (epoch) is a identifier to track your request, it is not needed to control the boiler.
 
@@ -300,7 +325,7 @@ template:
 
 ```
 
-## Notes:
+### Notes: <a name="Notes"></a>
 Here are some of the URLs you can manually make to control the boiler and a description:
 ```text
 1634911445424 == epoch

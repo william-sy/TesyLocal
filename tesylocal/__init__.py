@@ -19,7 +19,7 @@ tesyshed1  = []
 tesyshed2  = []
 tesyshed3  = []
 
-__version__ = "1.3"
+__version__ = "1.4"
 
 NAME = "tesylocal"
 VERSION = __version__
@@ -124,6 +124,33 @@ class tesy():
 
         data = {"next_target": next_target_temp, "next_hour": next_hour, "next_hour_c": next_hour_c}
         tesyreturn.update(data)
+
+    def _validatetemp(self, temp):
+        if isinstance(temp, int):
+            if 14 < temp < 75:
+                return True
+            else:
+                logging.info('Parameter given to temp must be a number between 14 and 75')
+        else:
+            logging.info('Parameter given to temp must be a valid number EG 45 and not 45.00')
+
+    def _validatehour(self, hour):
+        if isinstance(hour, str):
+            try:
+                time.strptime(hour,'%H')
+                return True
+            except:
+                logging.info('Parameter given to hour must be a number in the 24 hour range')
+        else:
+            logging.info('Parameter given to hour must be a string EG: "12"')
+
+    def _is_valid_date(self,date):
+        day, month, year = date.split('/')
+        try:
+            datetime.datetime(int(year), int(month), int(day))
+            return True
+        except ValueError:
+            logging.info('The date was not given correctly, please try "22/12/31"')
 
     @property
     def tesyprinter(self):
@@ -253,8 +280,8 @@ class tesy():
         Turn on or off manual temperature override.
         URL example: http://192.168.2.254/modeSW?mode=1
         ---
-        Send off value: boiler.boilermanualmode("192.168.2.254", 0)
-        Send on value: boiler.boilermanualmode("192.168.2.254", 1)
+        Send off value: boiler.boilermode("192.168.2.254", 0)
+        Send on value: boiler.boilermode("192.168.2.254", 1)
         """
         if isinstance(mode, int):
             if 0 <= mode < 9:
@@ -273,14 +300,9 @@ class tesy():
         Send value: boiler.manualtemp("192.168.2.254", 45)
         Must be between 14 and 75, note that manual mode must be on.
         """
-        if isinstance(temp, int):
-            if 14 < temp < 75:
-                urlsuffix = f"setTemp?val={temp}"
-                self._send_value(ip, urlsuffix)
-            else:
-                logging.info('Parameter given to manual temp must be a number between 14 and 75')
-        else:
-            logging.info('Parameter given to manual temp must be a valid number EG 45 and not 45.00')
+        if self._validatetemp(temp):
+            urlsuffix = f"setTemp?val={temp}"
+            self._send_value(ip, urlsuffix)
 
     def automanualtemp(self, ip, temp):
         """
@@ -288,7 +310,7 @@ class tesy():
         And set a temperature this guarantees a correct order of operations
         """
         # ToDo, check if it is needed
-        self.boilermanualmode(ip, 1)
+        self.boilermode(ip, 1)
         self.manualtemp(ip, temp)
 
     def resetpower(self, ip):
@@ -324,9 +346,32 @@ class tesy():
         urlsuffix = f"setdate?tOffset={selected_tz}&tDay={day}&tMonth={month}&tYear={year}&tHour={hour}&tMin={min}&tSec={sec}"
         self._send_value(ip, urlsuffix)
 
-    # SetVacation
-    #                                        EPOCH            year short        month       day         dayofweek   hour        target temp
-    #http://192.168.2.254/setVacation ?_=1665084319851        &vYear=22         &vMonth=10  &vMDay=27   &vWDay=4    &vHour=15   &vTemp=75
+    def setvacationmode(self, ip, date, hour, temp):
+        """
+        Turn on vacaation mode
+        URL example:http://192.168.2.254/setVacation ?_=1665084319851&vYear=22&vMonth=10&vMDay=27&vWDay=4&vHour=15&vTemp=75
+        ---
+        Please supply the end date of your vacation, the hour the vacation should end \
+        and the temperature you would like the water to be when you are back home
+        expected input: boiler.setvacationmode("192.168.2.254", "22/12/31", "00", 15)
+        at: 31 december 2022, at 00:00 the water must be 15 degrees.
+        """
+        if self._validatetemp(temp):
+            if self._validatehour(hour):
+                if self._is_valid_date(date):
+                    year, month, day = date.split('/')
+                    datetime_object = datetime.datetime.strptime(date, '%y/%m/%d')
+                    daynum = datetime_object.strftime('%w')
+                    urlsuffix = f"setVacation?vYear={year}&vMonth={month}&vMDay={day}&vWDay={daynum}&vHour={hour}&vTemp={temp}"
+                    print(urlsuffix)
+                    self._send_value(ip, urlsuffix)
+                else:
+                    logging.info('Validation of date failed')
+            else:
+                logging.info('Validation of hour failed')
+        else:
+            logging.info('Validation of temperature failed')
+
     def setboilervolume(self, ip, volume):
         """
         Set the water volume of the boiler in liters
@@ -335,7 +380,6 @@ class tesy():
         Allowed values: 50, 80, 100, 120, 150
         """
         allowedvalues = [ 50, 80, 100, 120 , 150]
-
         if isinstance(volume, int):
             if volume in allowedvalues:
                 urlsuffix = f"setVolume?liters={volume}"
